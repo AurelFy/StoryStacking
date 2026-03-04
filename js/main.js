@@ -1,5 +1,9 @@
-import * as THREE from "https://unpkg.com/three@latest/build/three.module.js";
+// import * as THREE from 'three'
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Pane } from "https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js";
 
 // SETTINGS
@@ -17,21 +21,39 @@ const threejsOptions = {
 //// VIEWER CLASS
 
 class Viewer {
+    controls = null;
+
     constructor(options) {
         this.canvas = options.canvas;
 
         this.setRenderer(options);
+        this.update();
     }
 
-    populate() {
+    async populate() {
         // Tout les éléments à ajouter dans la scene
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({
-            color: "slateblue",
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // const material = new THREE.MeshBasicMaterial({
+        //     color: "slateblue",
+        // });
+        // const mesh = new THREE.Mesh(geometry, material);
+        // this.scene.add(mesh);
+
+        const loader = new GLTFLoader();
+
+        await loader.load('/f1.glb', (gltf) => {
+
+            this.scene.add(gltf.scene);
+            console.log(gltf.scene.children)
+
+        }, undefined, (error) => {
+
+            console.error(error);
+
         });
-        const mesh = new THREE.Mesh(geometry, material);
-        this.scene.add(mesh);
+
+
 
         // Demander un rendu
         this.render();
@@ -57,6 +79,7 @@ class Viewer {
     setRenderer(options = {}) {
         this.renderer = new THREE.WebGLRenderer(options);
 
+
         // Crée notre caméra
         // PerspectiveCamera( fov, aspect-ratio, near, far )
         this.camera = new THREE.PerspectiveCamera(
@@ -72,7 +95,22 @@ class Viewer {
 
         // Crée notre scene et y rajoute notre camera
         this.scene = new THREE.Scene();
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7.5);
+        this.scene.add(directionalLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        this.scene.add(ambientLight);
         this.scene.add(this.camera);
+
+        // const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+        // const cubeMaterial = new THREE.MeshBasicMaterial(0xffffff);
+
+        // const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        // this.scene.add(cubeMesh);
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        this.controls.update();
 
         // Change une première fois la taille de notre canvas
         this.resize();
@@ -91,7 +129,7 @@ class Viewer {
         // à plus haute densité de pixel.
         settings.sizes.dpr = Math.min(window.devicePixelRatio, 2);
 
-        settings.canvas.style.aspetRatio = `${settings.sizes.w}/${settings.sizes.h}`;
+        settings.canvas.style.aspectRatio = `${settings.sizes.w}/${settings.sizes.h}`;
 
         // Mettre à jour la camera
         this.camera.aspect = settings.sizes.w / settings.sizes.h;
@@ -103,10 +141,16 @@ class Viewer {
 
         this.render();
     }
+
+    update() {
+        this.controls.update();
+        this.render();
+        window.requestAnimationFrame(this.update.bind(this));
+    }
 }
 
 const myViewer = new Viewer(threejsOptions);
-// myViewer.addGizmo(2);
+myViewer.addGizmo(2);
 
 // Ajouter un event resize et appeler la fonction qui
 // gère les changements de tailles

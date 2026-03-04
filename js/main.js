@@ -1,4 +1,5 @@
 import * as THREE from "https://unpkg.com/three@latest/build/three.module.js";
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Pane } from "https://cdn.jsdelivr.net/npm/tweakpane@4.0.5/dist/tweakpane.min.js";
 
 // SETTINGS
